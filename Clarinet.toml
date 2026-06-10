@@ -1,0 +1,65 @@
+[project]
+name = "clarity-pox-5-pool"
+description = ""
+authors = []
+telemetry = true
+cache_dir = "./.cache"
+
+[[project.requirements]]
+contract_id = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token"
+
+[[project.requirements]]
+contract_id = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry"
+
+[[project.requirements]]
+contract_id = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-withdrawal"
+
+[[project.requirements]]
+contract_id = "SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard"
+
+[contracts.pox-5]
+path = "contracts/pox-5.clar"
+clarity_version = 5
+epoch = "3.4"
+
+[contracts.signer-manager]
+path = "contracts/signer-manager.clar"
+clarity_version = 5
+epoch = "3.4"
+
+[contracts.signer-manager-2]
+path = "contracts/signer-manager.clar"
+clarity_version = 5
+epoch = "3.4"
+
+[contracts.vault-trait]
+path = "contracts/vault-trait.clar"
+clarity_version = 5
+epoch = "3.4"
+
+[contracts.vault-1]
+path = "contracts/vault.clar"
+clarity_version = 5
+epoch = "3.4"
+
+[contracts.vault-2]
+path = "contracts/vault.clar"
+clarity_version = 5
+epoch = "3.4"
+
+[contracts.pool]
+path = "contracts/pool.clar"
+clarity_version = 5
+epoch = "3.4"
+
+# Check-checker settings:
+# trusted_sender: if true, inputs are trusted after tx_sender has been checked.
+# trusted_caller: if true, inputs are trusted after contract-caller has been checked.
+# callee_filter: if true, untrusted data may be passed into a private function without a
+# warning, if it gets checked inside. This check will also propagate up to the
+# caller.
+# More informations: https://www.hiro.so/blog/new-safety-checks-in-clarinet
+
+[repl.analysis]
+passes = ["check_checker"]
+check_checker = { trusted_sender = false, trusted_caller = false, callee_filter = false }
