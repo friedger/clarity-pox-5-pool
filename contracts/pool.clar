@@ -45,6 +45,7 @@
 (define-constant ERR_DIFFERENT_VAULT (err u3007))
 (define-constant ERR_VAULT_MISMATCH (err u3008))
 (define-constant ERR_NO_PENDING (err u3009))
+(define-constant ERR_VAULT_ALREADY_ASSIGNED (err u3010))
 (define-constant ERR_INSUFFICIENT_SHARES (err u3011))
 (define-constant ERR_NO_SHARES (err u3013))
 (define-constant ERR_NOT_TOKEN_OWNER (err u3012))
@@ -78,8 +79,12 @@
     }
 )
 
-;; signer (signer-manager principal) -> bound vault principal
-(define-map signer-vault principal principal)
+;; vault principal -> its single signer-manager principal. Keyed by vault, so a
+;; vault maps to exactly ONE signer (matching pox-5, which keys a bond position
+;; by principal and asserts the signer on unstake) while a signer can own MANY
+;; vaults (many vault-keys pointing to the same signer) for overlapping bond
+;; periods. Enumerating a signer's vaults is done off-chain via assign-vault events.
+(define-map vault-signer principal principal)
 
 ;; Per-user STX principal supplied (microSTX), returned pro-rata on withdraw.
 (define-map stx-principal principal uint)
@@ -104,7 +109,7 @@
 ;; Internal helpers
 ;; ---------------------------------------------------------------------------
 
-(define-private (is-operator)
+(define-private (is-operator) ;; TODO: gate on contract-caller (not tx-sender), and make operator a multisig?
     (ok (asserts! (is-eq tx-sender (var-get operator)) ERR_NOT_OPERATOR))
 )
 
@@ -184,6 +189,13 @@
                 active: active,
             })
         )
+        (print {
+            topic: "update-listing",
+            signer: signer,
+            listed-by: tx-sender,
+            name: name,
+            fee-bips: fee-bips,
+        })
         (ok true)
     )
 )
@@ -192,6 +204,11 @@
     (let ((listing (unwrap! (map-get? listed-signers signer) ERR_NOT_LISTED)))
         (asserts! (is-eq tx-sender (get listed-by listing)) ERR_NOT_LISTER)
         (map-delete listed-signers signer)
+        (print {
+            topic: "delist",
+            signer: signer,
+            listed-by: tx-sender,
+        })
         (ok true)
     )
 )
@@ -204,7 +221,23 @@
     )
     (begin
         (try! (is-operator))
-        (map-set signer-vault signer (contract-of vault))
+        ;; Fail fast: reject binding a vault to a signer that isn't a live pox-5
+        ;; signer. Mirrors pox-5's own gate (registered + active key grant) that
+        ;; register-for-bond enforces later, so the operator can't strand future
+        ;; depositors in a vault that could never stake. Point-in-time only -- a
+        ;; grant can still be revoked before register-cohort, where pox-5 is final.
+        (try! (contract-call? .pox-5 verify-signer-key-grant signer
+            (unwrap! (contract-call? .pox-5 get-signer-info signer) ERR_SIGNER_NOT_REGISTERED)))
+        ;; A vault belongs to exactly one signer (pox-5: one position per
+        ;; principal). Reject rebinding it to a different signer.
+        (asserts!
+            (match (map-get? vault-signer (contract-of vault))
+                existing (is-eq existing signer)
+                true
+            )
+            ERR_VAULT_ALREADY_ASSIGNED
+        )
+        (map-set vault-signer (contract-of vault) signer)
         (print {
             topic: "assign-vault",
             signer: signer,
@@ -234,11 +267,12 @@
             (pending (get-pending v))
         )
         (asserts! (> sbtc u0) ERR_ZERO_AMOUNT)
-        ;; vault must be the one bound to the chosen signer
-        (asserts! (is-eq (some v) (map-get? signer-vault signer))
+        ;; vault must be bound to the chosen signer
+        (asserts! (is-eq (some signer) (map-get? vault-signer v))
             ERR_VAULT_NOT_ASSIGNED
         )
         ;; one vault (signer) per user until full exit
+        ;; TODO: global pooled position instead of per-user vault binding? (see #2)
         (asserts!
             (match (map-get? user-vault user)
                 current (is-eq current v)
@@ -299,7 +333,7 @@
             (pending (get-pending v))
         )
         (try! (is-operator))
-        (asserts! (is-eq (some v) (map-get? signer-vault signer)) ERR_VAULT_MISMATCH)
+        (asserts! (is-eq (some signer) (map-get? vault-signer v)) ERR_VAULT_MISMATCH)
         (asserts! (> (get sbtc pending) u0) ERR_NO_PENDING)
         (try! (contract-call? vault register-bond bond-index sm
             (get sbtc pending) (get ustx pending) signer-calldata
@@ -449,8 +483,9 @@
     (map-get? listed-signers signer)
 )
 
-(define-read-only (get-vault-for-signer (signer principal))
-    (map-get? signer-vault signer)
+;; Each vault has exactly one signer; return it (none if unassigned).
+(define-read-only (get-vault-signer (vault principal))
+    (map-get? vault-signer vault)
 )
 
 (define-read-only (get-total-sbtc)
