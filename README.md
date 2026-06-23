@@ -83,16 +83,40 @@ so they are **stripped from on-chain deployments**:
 - `test-sbtc-roundtrip-no-gain` / `test-shares-roundtrip-no-gain` — the share math
   never lets value/shares be created by rounding.
 
-The harness lives in `tests/rv-fuzz.test.ts` and runs under `npm test`. It drives
-Rendezvous via its **library API** (`strategyFor` / `getContractFunction` + fast-check)
-rather than the `rv` CLI: the CLI calls `getContractAST` on every project contract,
-which throws for the mainnet sBTC **requirement** contracts — passing an explicit
-trait-implementation map to `strategyFor` sidesteps that scan while running the same
-generators.
+Run it:
 
-**A bug this caught:** the invariant campaign flagged that `fold-rewards` on an empty
-pool (`supply == 0`) created backing with no shares, stranding the sBTC. Fixed by
-requiring `supply > 0` in `fold-rewards`.
+```bash
+npm run rv:test         # fuzz the test-* properties
+npm run rv:invariant    # random call sequences, checking invariant-* after each
+npm test                # vitest: lifecycle tests also assert the invariants over deep state
+```
+
+**Bootstrapped harness (`tests/rv/`).** A plain `rv` run starts from an empty pool, so
+the fuzzer bounces off the `assign-vault` / signer-registration gates and never reaches
+`supply > 0`. To start *bootstrapped*, the harness uses a **custom Clarinet manifest**
+(`tests/rv/Clarinet.toml`) that adds one harness-only contract, `rv-bootstrap.clar`,
+whose top-level body runs at publish and calls the `#[env(simnet)]` `pool.rv-wire` —
+binding the vaults to the signers and pointing them at the pool. With that, the campaign
+actually deposits, folds rewards, and withdraws. The harness is isolated in its own
+directory (own manifest + deployment plan) so it never affects `npm test` or
+`clarinet check`. `tests/rv/run.mjs` drives it (the `rv` bin has a flaky
+`epoch field invalid` crash on epoch-3.4 plans; invoking Rendezvous' `main()` via import,
+after clearing the stale plan, avoids it).
+
+**rv patch.** Rendezvous' `extractProjectTraitImplementations` calls `getContractAST` on
+every deployed contract, and clarinet's wasm throws for the mainnet sBTC **requirement**
+contracts (their AST isn't retained in the simnet), crashing the run. A one-line guard
+(skip contracts whose AST can't load — a requirement contract can't implement a
+project-local trait anyway) is shipped as `patches/@stacks+rendezvous+1.0.0.patch` and
+auto-applied via the `postinstall` (`patch-package`) hook.
+
+**Bugs this caught:**
+- `fold-rewards` on an empty pool (`supply == 0`) created backing with no shares,
+  stranding the sBTC. Fixed by requiring `supply > 0`.
+- Once *bootstrapped* (deep state), the campaign found `fold-rewards` broke
+  `invariant-solvency`: it raised `total-sbtc` while only *trusting* the operator had
+  delivered the reward sBTC. Fixed by making `fold-rewards` **pull** the sBTC into the
+  vault atomically, so backing is always real.
 
 ## v1 scope & caveats
 

@@ -214,6 +214,17 @@ function poolBalance(who: string): bigint {
   return (r.result as any).value.value as bigint;
 }
 
+// Assert the pool's rv invariants hold in the current (deep) state. The rv CLI
+// (`npm run rv:invariant`) checks these over random UNbootstrapped sequences;
+// here we verify them over the real bootstrapped lifecycle, where deposits,
+// rewards, and withdrawals actually succeed (supply > 0).
+function expectInvariants(label: string) {
+  for (const inv of ["invariant-solvency", "invariant-supply-assets-coupled"]) {
+    const r = simnet.callReadOnlyFn(POOL, inv, [], deployer).result as any;
+    expect(r.type, `${inv} after ${label}`).toBe("true");
+  }
+}
+
 describe("signer registry", () => {
   beforeEach(() => bootstrap());
 
@@ -411,18 +422,8 @@ describe("deposit + cohort lifecycle", () => {
       ).value,
     ).toBe(100_000n);
 
-    // deliver 50k sBTC of "rewards" to the vault and fold it in
-    simnet.callPublicFn(
-      SBTC,
-      "transfer",
-      [
-        Cl.uint(50_000),
-        Cl.principal(deployer),
-        Cl.principal(VAULT1),
-        Cl.none(),
-      ],
-      deployer,
-    );
+    // fold 50k sBTC of "rewards" in -- fold-rewards pulls the sBTC from the
+    // operator into the vault atomically.
     expect(
       simnet.callPublicFn(
         POOL,
@@ -460,6 +461,7 @@ describe("deposit + cohort lifecycle", () => {
       ],
       wallet1,
     );
+    expectInvariants("deposit");
     simnet.callPublicFn(
       POOL,
       "register-cohort",
@@ -471,25 +473,16 @@ describe("deposit + cohort lifecycle", () => {
       ],
       deployer,
     );
+    expectInvariants("register-cohort");
 
-    // simulate rewards: 40k sBTC delivered to the vault + folded in
-    simnet.callPublicFn(
-      SBTC,
-      "transfer",
-      [
-        Cl.uint(40_000),
-        Cl.principal(deployer),
-        Cl.principal(VAULT1),
-        Cl.none(),
-      ],
-      deployer,
-    );
+    // simulate rewards: fold 40k sBTC in (fold-rewards pulls it into the vault)
     simnet.callPublicFn(
       POOL,
       "fold-rewards",
       [Cl.principal(VAULT1), Cl.uint(40_000)],
       deployer,
     );
+    expectInvariants("fold-rewards");
 
     // unwind the staked sBTC back into the vault so it can be withdrawn
     expect(
@@ -500,6 +493,7 @@ describe("deposit + cohort lifecycle", () => {
         deployer,
       ).result,
     ).toBeOk(Cl.uint(sbtc));
+    expectInvariants("unstake-cohort");
 
     const sbtcBefore = sbtcBalance(wallet1);
 
@@ -522,6 +516,8 @@ describe("deposit + cohort lifecycle", () => {
     expect(
       simnet.callReadOnlyFn(POOL, "get-total-sbtc", [], deployer).result as any,
     ).toBeUint(0);
+    // invariants still hold after a full exit (supply == 0 and backing == 0)
+    expectInvariants("withdraw (full exit)");
   });
 });
 

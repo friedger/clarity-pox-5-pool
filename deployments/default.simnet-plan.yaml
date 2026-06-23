@@ -106,6 +106,16 @@ plan:
       path: contracts/vault-trait.clar
       clarity-version: 5
     - transaction-type: emulated-contract-publish
+      contract-name: vault-1
+      emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+      path: contracts/vault.clar
+      clarity-version: 5
+    - transaction-type: emulated-contract-publish
+      contract-name: vault-2
+      emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+      path: contracts/vault.clar
+      clarity-version: 5
+    - transaction-type: emulated-contract-publish
       contract-name: pool
       emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
       path: contracts/pool.clar
@@ -119,15 +129,5 @@ plan:
       contract-name: signer-manager-2
       emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
       path: contracts/signer-manager.clar
-      clarity-version: 5
-    - transaction-type: emulated-contract-publish
-      contract-name: vault-1
-      emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-      path: contracts/vault.clar
-      clarity-version: 5
-    - transaction-type: emulated-contract-publish
-      contract-name: vault-2
-      emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-      path: contracts/vault.clar
       clarity-version: 5
     epoch: '3.4'

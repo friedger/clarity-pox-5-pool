@@ -352,9 +352,11 @@
     )
 )
 
-;; Record sBTC rewards (`amount` sats) that have been delivered to `vault` out of
-;; band (via the signer-manager's permissionless claim path). Raises the
-;; redemption rate for all liquid-token holders.
+;; Fold `amount` sats of sBTC rewards into the pool, raising the redemption rate
+;; for all liquid-token holders. The operator sources the sBTC from the
+;; signer-manager's permissionless reward claims; `fold-rewards` then moves it
+;; into the vault ATOMICALLY (rather than trusting an earlier out-of-band
+;; delivery), so the liquid token's backing is always real.
 (define-public (fold-rewards
         (vault <vault-trait>)
         (amount uint)
@@ -366,6 +368,10 @@
         ;; Folding into an empty pool would strand the sBTC (no holder could ever
         ;; redeem it) and break the supply/asset coupling. (Found by rv fuzzing.)
         (asserts! (> (ft-get-supply pool-sbtc) u0) ERR_NO_SHARES)
+        ;; Pull the reward sBTC into the vault now, so `total-sbtc` can never
+        ;; exceed the sBTC actually reachable (solvency). Folding without real
+        ;; delivery would break invariant-solvency. (Found by rv fuzzing.)
+        (try! (contract-call? SBTC transfer amount tx-sender (contract-of vault) none))
         (var-set total-sbtc (+ (var-get total-sbtc) amount))
         (print {
             topic: "fold-rewards",
@@ -566,6 +572,26 @@
 ;; #[env(simnet)]
 (define-private (update-context (function-name (string-ascii 100)) (called uint))
     (ok (map-set context function-name { called: called }))
+)
+
+;; Bootstrap a deposit-able state for the rv CLI campaign. Invoked once by the
+;; harness deployment plan (tests/rv/deployments) via an `emulated-contract-call`
+;; as the operator, so the fuzzer starts from real depth (supply > 0) instead of
+;; bouncing off the assign-vault / signer-registration gates. Seeds the
+;; vault->signer bindings directly (skipping the pox-5 signer check, which is
+;; orthogonal to the pool accounting being fuzzed) and points the vaults at this
+;; pool. Idempotent (tolerates already-wired) so the fuzzer re-calling it is
+;; harmless. simnet-only; stripped from on-chain deployments.
+;; #[env(simnet)]
+(define-public (rv-wire)
+    (let ((self (unwrap-panic (as-contract? () tx-sender))))
+        (try! (is-operator))
+        (map-set vault-signer .vault-1 .signer-manager)
+        (map-set vault-signer .vault-2 .signer-manager-2)
+        (match (contract-call? .vault-1 set-pool self) ok-1 true err-1 true)
+        (match (contract-call? .vault-2 set-pool self) ok-2 true err-2 true)
+        (ok true)
+    )
 )
 
 ;; The pre-deployed vaults the pool routes into.

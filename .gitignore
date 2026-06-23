@@ -11,3 +11,6 @@ coverage
 *.info
 costs-reports.json
 node_modules
+tests/rv/deployments/
+tests/rv/.cache/
+.rendezvous-regressions/

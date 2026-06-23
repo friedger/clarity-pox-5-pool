@@ -1,0 +1,5 @@
+minimumReleaseAgeExclude:
+  - '@stacks/common@7.5.0'
+  - '@stacks/network@7.5.0'
+  - '@stacks/rendezvous@1.0.1'
+  - '@stacks/transactions@7.5.0'
