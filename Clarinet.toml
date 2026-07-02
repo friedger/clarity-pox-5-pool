@@ -20,6 +20,9 @@ cache_dir = "./.cache"
 [[project.requirements]]
 contract_id = "SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard"
 
+[[project.requirements]]
+contract_id = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-withdrawal"
+
 [project.override_boot_contracts_source]
 pox-5 = "./boot/pox-5.clar"
 

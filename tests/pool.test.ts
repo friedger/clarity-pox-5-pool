@@ -5,10 +5,15 @@ import { beforeEach, describe, expect, it } from "vitest";
  * End-to-end tests for the signer-agnostic sBTC liquid-staking pool on pox-5.
  *
  * TESTING CAVEATS (see pool.clar / plan):
- *  - The vendored pox-5 is a regular contract here, not the node's boot pox
- *    contract, so the node-side STX *lock* never fires. STX balances are real and
- *    pox-5 bookkeeping (memberships, totals) is exercised, but we assert on that
- *    bookkeeping + the liquid token + sBTC transfers, not on L1 STX-lock state.
+ *  - pox-5 is the canonical contract, injected via Clarinet's boot-contract source
+ *    override, but simnet still does NOT fire the node-side STX *lock*. So STX
+ *    balances stay unlocked and, crucially, the SIP-044 `with-staking` allowance is
+ *    NOT enforced here (the buggy `with-stx` variant also passes) -- that fix is
+ *    verified on-node. We assert on pox-5 bookkeeping (memberships, totals, the
+ *    collateral gate) + the liquid token + sBTC transfers, not on STX-lock state.
+ *  - The mainnet sBTC token can't be `protocol-mint`ed from simnet (its mint is
+ *    gated to sBTC protocol contracts as contract-caller, which simnet can't be),
+ *    so test balances are seeded with the REPL's `::mint_ft` (see seedSbtc).
  *  - The L1 BTC-lockup proof path is not exercised; deposits use pox-5's sBTC
  *    (err-branch) leg of `btc-lockup`.
  *  - Real pox-5 reward distribution needs the node; rewards are simulated by
@@ -20,17 +25,24 @@ const deployer = accounts.get("deployer")!;
 const wallet1 = accounts.get("wallet_1")!;
 const wallet2 = accounts.get("wallet_2")!;
 
-const POX5 = `${deployer}.pox-5`;
 const SIGNER_MGR = `${deployer}.signer-manager-1`;
 const SIGNER_MGR_2 = `${deployer}.signer-manager-2`;
 const POOL = `${deployer}.pool`;
 const VAULT1 = `${deployer}.vault-1`;
 const VAULT2 = `${deployer}.vault-2`;
 const SBTC = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token";
+// `<contract>.<ft-name>` for the REPL's `::mint_ft`. The sBTC token is mainnet
+// (pulled via requirements); its `protocol-mint` is gated to sBTC protocol
+// contracts as `contract-caller`, which simnet can't impersonate (contract
+// principals are rejected as tx senders). So we seed test balances directly with
+// the simnet REPL's `::mint_ft`, which writes the ft-balance map with no gate.
+const SBTC_ASSET = `${SBTC}.sbtc-token`;
 
 // The initial bond-admin in pox-5 is the boot address; we transfer it to the
 // deployer by impersonating the boot principal.
 const BOOT_ADMIN = "SP000000000000000000002Q6VF78";
+
+const POX5 = `${BOOT_ADMIN}.pox-5`;
 
 // burnchain params chosen so bond-index 1 is set-up-able and registrable at the
 // simnet's initial burn height (see plan timing math).
@@ -186,6 +198,12 @@ function bootstrap() {
       deployer,
     ).result,
   ).toBeOk(Cl.bool(true));
+
+  // Fund the depositors (deposit sBTC into a vault) and the operator (fold-rewards
+  // pulls reward sBTC from the deployer). 1 sBTC each is ample for these tests.
+  seedSbtc(wallet1, 100_000_000n);
+  seedSbtc(wallet2, 100_000_000n);
+  seedSbtc(deployer, 100_000_000n);
 }
 
 function sbtcBalance(who: string): bigint {
@@ -196,6 +214,13 @@ function sbtcBalance(who: string): bigint {
     deployer,
   );
   return (r.result as any).value.value as bigint;
+}
+
+// Seed `amount` sats of sBTC to `who` via the simnet REPL (see SBTC_ASSET). Used
+// to fund depositors and the reward-paying operator, since the mainnet sBTC can't
+// be `protocol-mint`ed from a test (no contract-caller impersonation in simnet).
+function seedSbtc(who: string, amount: bigint) {
+  (simnet as any).executeCommand(`::mint_ft ${SBTC_ASSET} ${who} ${amount}`);
 }
 
 function poolBalance(who: string): bigint {
@@ -351,10 +376,13 @@ describe("deposit + cohort lifecycle", () => {
       wallet2,
     );
 
-    // The deposits above carry a nonzero ustx collateral, so this also exercises
-    // vault.clar's register-bond as-contract? allowance: it must cover BOTH the
-    // sBTC transfer (with-ft) and pox-5's native STX lock (with-stx) for the
-    // aggregate ustx, or the call aborts with the VM's asset-allowance error.
+    // The deposits above carry a nonzero ustx collateral, so this drives
+    // vault.clar's register-bond as-contract?, whose allowances must cover the
+    // sBTC custody transfer (with-ft) AND pox-5's STX stacking lock (with-staking)
+    // for the aggregate ustx. NOTE: simnet's boot pox-5 does not fire the native
+    // STX lock, so it does NOT enforce the SIP-044 staking allowance here (the old
+    // buggy `with-stx` also passes in simnet) -- that fix is verified on-node,
+    // where the real Clarity-6 VM aborts a `with-stx` lock with (err u128).
     const reg = simnet.callPublicFn(
       POOL,
       "register-cohort",
@@ -394,6 +422,83 @@ describe("deposit + cohort lifecycle", () => {
         deployer,
       ).result,
     ).toBeTuple({ sbtc: Cl.uint(0), ustx: Cl.uint(0) });
+  });
+
+  // The staking (with-staking) path: register-cohort -> vault.register-bond ->
+  // pox-5.register-for-bond, which stakes the aggregated sBTC and requires the STX
+  // collateral to meet the bond's min-ustx-for-sats ratio. Bond-1 here is
+  // stx-value-ratio 100 (ustx/100 sats) x min-ustx-ratio 100 bips => min ustx ==
+  // sats / 100. (simnet doesn't enforce the SIP-044 allowance itself; see the note
+  // in the register-cohort test above -- this exercises the staking bookkeeping +
+  // collateral gate, which the allowance protects on-node.)
+  it("register-for-bond stakes when STX collateral meets the bond minimum", () => {
+    const sbtc = 1_000_000n;
+    const minUstx = sbtc / 100n; // 10_000: exactly the bond's required collateral
+
+    simnet.callPublicFn(
+      POOL,
+      "deposit",
+      [Cl.principal(SIGNER_MGR), Cl.principal(VAULT1), Cl.uint(sbtc), Cl.uint(minUstx)],
+      wallet1,
+    );
+
+    const reg = simnet.callPublicFn(
+      POOL,
+      "register-cohort",
+      [Cl.principal(VAULT1), Cl.uint(BOND_INDEX), Cl.principal(SIGNER_MGR), Cl.none()],
+      deployer,
+    );
+    expect(reg.result).toBeOk(Cl.bool(true));
+
+    // pox-5 staked the sBTC and recorded the STX collateral as the bond amount.
+    expect(
+      simnet.callReadOnlyFn(POX5, "get-bond-membership", [Cl.principal(VAULT1)], deployer)
+        .result,
+    ).toBeSome(
+      Cl.tuple({
+        "bond-index": Cl.uint(BOND_INDEX),
+        "amount-ustx": Cl.uint(minUstx),
+        signer: Cl.principal(SIGNER_MGR),
+        "is-l1-lock": Cl.bool(false),
+        "amount-sats": Cl.uint(sbtc),
+      }),
+    );
+    // and the bond's total staked sats reflect the cohort.
+    expect(
+      simnet.callReadOnlyFn(
+        POX5,
+        "get-total-sbtc-staked-for-bond",
+        [Cl.uint(BOND_INDEX)],
+        deployer,
+      ).result,
+    ).toBeUint(sbtc);
+  });
+
+  it("register-for-bond is rejected when STX collateral is below the bond minimum", () => {
+    const sbtc = 1_000_000n;
+    const belowMin = sbtc / 100n - 1n; // 9_999: one micro-STX under the ratio
+
+    simnet.callPublicFn(
+      POOL,
+      "deposit",
+      [Cl.principal(SIGNER_MGR), Cl.principal(VAULT1), Cl.uint(sbtc), Cl.uint(belowMin)],
+      wallet1,
+    );
+
+    // pox-5.register-for-bond asserts amount-ustx >= min-ustx-for-sats-amount.
+    const reg = simnet.callPublicFn(
+      POOL,
+      "register-cohort",
+      [Cl.principal(VAULT1), Cl.uint(BOND_INDEX), Cl.principal(SIGNER_MGR), Cl.none()],
+      deployer,
+    );
+    expect(reg.result).toBeErr(Cl.uint(8)); // ERR_INSUFFICIENT_STX
+
+    // nothing staked; the cohort is still pending for a topped-up retry.
+    expect(
+      simnet.callReadOnlyFn(POX5, "get-bond-membership", [Cl.principal(VAULT1)], deployer)
+        .result,
+    ).toBeNone();
   });
 
   it("fold-rewards raises the redemption rate for existing holders", () => {
