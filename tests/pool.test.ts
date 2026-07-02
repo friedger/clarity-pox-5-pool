@@ -1,11 +1,5 @@
-import { describe, expect, it, beforeEach } from "vitest";
-import { Cl, ClarityType } from "@stacks/transactions";
-import {
-  signMessageHashRsv,
-  privateKeyToPublic,
-  compressPublicKey,
-  publicKeyToHex,
-} from "@stacks/transactions";
+import { Cl, compressPublicKey, privateKeyToPublic, publicKeyToHex, signMessageHashRsv } from "@stacks/transactions";
+import { beforeEach, describe, expect, it } from "vitest";
 
 /*
  * End-to-end tests for the signer-agnostic sBTC liquid-staking pool on pox-5.

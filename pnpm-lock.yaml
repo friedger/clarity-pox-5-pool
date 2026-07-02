@@ -9,30 +9,30 @@ importers:
   .:
     dependencies:
       '@stacks/clarinet-sdk':
-        specifier: ^3.20.0
-        version: 3.20.0
+        specifier: ^3.21.0
+        version: 3.21.0
       '@stacks/transactions':
         specifier: ^7.5.0
         version: 7.5.0
       '@types/node':
-        specifier: ^26.0.0
-        version: 26.0.0
+        specifier: ^26.1.0
+        version: 26.1.0
       chokidar-cli:
         specifier: ^3.0.0
         version: 3.0.0
       vitest:
         specifier: ^4.1.9
-        version: 4.1.9(@types/node@26.0.0)(vite@8.0.16(@types/node@26.0.0))
+        version: 4.1.9(@types/node@26.1.0)(vite@8.0.16(@types/node@26.1.0))
       vitest-environment-clarinet:
         specifier: ^3.0.2
-        version: 3.0.2(@stacks/clarinet-sdk@3.20.0)(vitest@4.1.9(@types/node@26.0.0)(vite@8.0.16(@types/node@26.0.0)))
+        version: 3.0.2(@stacks/clarinet-sdk@3.21.0)(vitest@4.1.9(@types/node@26.1.0)(vite@8.0.16(@types/node@26.1.0)))
     devDependencies:
       '@stacks/rendezvous':
         specifier: ^1.0.1
         version: 1.0.1
       '@stacks/wallet-sdk':
-        specifier: ^7.4.0
-        version: 7.4.0
+        specifier: ^7.5.0
+        version: 7.5.0
 
 packages:
 
@@ -170,40 +170,34 @@ packages:
   '@scure/bip39@1.1.0':
     resolution: {integrity: sha512-pwrPOS16VeTKg98dYXQyIjJEcWfz7/1YJIwxUEPFfQPtc86Ym/1sVgQ2RLoD43AazMk2l/unK4ITySSpW2+82w==}
 
-  '@stacks/auth@7.4.0':
-    resolution: {integrity: sha512-2nEPQuhJMifxX7YhuaI1Qn7D0Bjvdav3cmQQXF6PGA/MKIQniExhvHKhuGrshMaJ2OUui+lJxFWA8RCyJVd5ow==}
+  '@stacks/auth@7.5.0':
+    resolution: {integrity: sha512-b1BcgH88RDIWGPpORy68VrywqVzVaTbXFKEV0Qt5+aSpnpXDBXYkixO+TTe8wSIiYXxovhu8IIhPqefL/f5EkA==}
 
-  '@stacks/clarinet-sdk-wasm@3.20.0':
-    resolution: {integrity: sha512-UJsepeAidFpPSffF283HZMtlOk5pGPaUS7OmBQgOC8tN5jWeADqYl97m61XdXi43pI/jdaKLuLVyktJkaOfJOw==}
+  '@stacks/clarinet-sdk-wasm@3.21.0':
+    resolution: {integrity: sha512-jX/QWkWIhT2S+NSci5QV0882K9nXDt/WV9c+oqlcdGmCMaiEvsSgWIJ9YNuyNyiyPfIcBOnvGrxxqAMtVaVrog==}
 
-  '@stacks/clarinet-sdk@3.20.0':
-    resolution: {integrity: sha512-pITFBfCXoiwn2XmS30nhYDPWSbXGiGgqEWYIHslH9NDYPNo1lctjydR/dUYqOOxa+49hJk4ye8R+heZyMLydrA==}
+  '@stacks/clarinet-sdk@3.21.0':
+    resolution: {integrity: sha512-rA8S1j/3n4DcBAmtu8BhKDEPE2qWBOdkEdoz5IgqdRu7qOUvyUyrGEa/JEZJLqkiSYhSrIB/hIQVWgUVK5iiHQ==}
     engines: {node: '>=20'}
-
-  '@stacks/common@7.3.1':
-    resolution: {integrity: sha512-29ANTFcSSlXnGQlgDVWg7OQ74lgQhu3x8JkeN19Q+UE/1lbQrzcctgPHG74XHjWNp8NPBqskUYA8/HLgIKuKNQ==}
 
   '@stacks/common@7.5.0':
     resolution: {integrity: sha512-UkKM3J7VufGEEuHLYRAFZQFbiQeACMpMMzGbBL6qo/6YLXvPPXA8MBffeCsXE65/a0bJSbh+0Q7rfdio9IvZ1w==}
 
-  '@stacks/encryption@7.4.0':
-    resolution: {integrity: sha512-jrxgHui3P8M2o2sXs01cAd9uJ6JrtB0g6BDBSKj6K40zvlBbEOiki4wXYQNC3g3AmO73Udv31EhCQrWZtwZspA==}
-
-  '@stacks/network@7.3.1':
-    resolution: {integrity: sha512-dQjhcwkz8lihSYSCUMf7OYeEh/Eh0++NebDtXbIB3pHWTvNCYEH7sxhYTB1iyunurv31/QEi0RuWdlfXK/BjeA==}
+  '@stacks/encryption@7.5.0':
+    resolution: {integrity: sha512-2PUx/M32k5ftchMAHRSbE/j3e/cNwUYvvLuaISgm5VP4lvL9OzMb8Ed04+eY81Lvm7IlJftVi4bOa17wt1BwUg==}
 
   '@stacks/network@7.5.0':
     resolution: {integrity: sha512-FKfw864+ipj0RBa0kXBCKp+6Bm/8IS1pk+jg5NJhi//NzG8fZsC4MsER1F8qvzVoFrLfZjqxo+3sJDYfvHbVOQ==}
 
-  '@stacks/profile@7.4.0':
-    resolution: {integrity: sha512-1fJlYtV/mIwc6Mp63hchsebcoPL1So/6kba4uJHdd41DQk0U7zMIN6/QQ+BWF9nQfP8m7pWy5U+xAOLyYU5TMQ==}
+  '@stacks/profile@7.5.0':
+    resolution: {integrity: sha512-5947uVjims/LbU2oFt6czkqER6ZGEAmNsakDQx65+itFBeYVxYOM8z91Afdwn1qBMCeZOAiPdB7JSAQ4w/FUKg==}
 
   '@stacks/rendezvous@1.0.1':
     resolution: {integrity: sha512-bXyK504/rnvZiMvWVeVbjEW1b5xXuWYOcSIFFZzt9tP84GdW0viSD6UuElFJzTvqisUFvFYDgFJQnbH21Uhctg==}
     hasBin: true
 
-  '@stacks/storage@7.4.0':
-    resolution: {integrity: sha512-te94se3ZqucbU/O5p5uzl2gZSCD7p1W6mQLBFeM9LHA+VVCEnEMEK6sXoYEoiMl9EwicWnACUVIDlvHGZiPVFQ==}
+  '@stacks/storage@7.5.0':
+    resolution: {integrity: sha512-+M/ZOITKiMLMbNkcTZfgvXm1MnyKwB3AVVh9mDunhlLVTnRpvA4meKeTad0pfImidLeRAeYqOZapxI8Ls0pT6A==}
 
   '@stacks/transactions@7.4.0':
     resolution: {integrity: sha512-scsQO3rSNNKcPHp56Wy5OeZiIpQNmmZOORz8bkQKWjzvzycAodtSWmAoHiMFAKSleR1NyeRIz642fReqlZU9tw==}
@@ -211,8 +205,8 @@ packages:
   '@stacks/transactions@7.5.0':
     resolution: {integrity: sha512-PhKe8ZIaVWvTbsTDE/26z9Dm6oYYZ2Cfhpg7xabE97bCE59KwuujBkvLVCJKEdlUn/P187120Go79UbGf9BywA==}
 
-  '@stacks/wallet-sdk@7.4.0':
-    resolution: {integrity: sha512-c0F/DzB30GV0tQAfWvbfGEZmzyTPics286IV+XRafj2j7UKur2yvEh5m3ORd79+KWleIV4dbGjfXTJ3MEz2LGg==}
+  '@stacks/wallet-sdk@7.5.0':
+    resolution: {integrity: sha512-O81sjlcBwx3AiOUBZxhSnaVmgn4sDzxd/DAnEz44ZURFcisn0bpsjde5SxR6eQbljq1ogFI89G44g+TYxjEyyw==}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -229,8 +223,8 @@ packages:
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
-  '@types/node@26.0.0':
-    resolution: {integrity: sha512-vf2YFi1iY9lHGwNJMs01biZFbKJkrZR1T6/MlzjhJLPdntOHLhTrDSnSVcdtvjihi4VQNlrFRIxLsDBlQpAipA==}
+  '@types/node@26.1.0':
+    resolution: {integrity: sha512-O0A1G3xPGy4w7AgQdAQYUlQ+BKk2Oovw8eRpofyp5KdBZULnbe+WqaOVNrm705SHphCiG4XHsACrSmPu1f+Kgw==}
 
   '@vitest/expect@4.1.9':
     resolution: {integrity: sha512-vl/rYsUKcBr3SnQn166+XR5ZQcgMx3DQhFWdfli/cWpLnLUmbxZvyrJZotLFUryib+LtArYMSTJ5RbQ57ZqrlA==}
@@ -926,23 +920,23 @@ snapshots:
       '@noble/hashes': 1.1.5
       '@scure/base': 1.1.9
 
-  '@stacks/auth@7.4.0':
+  '@stacks/auth@7.5.0':
     dependencies:
       '@noble/secp256k1': 1.7.1
       '@stacks/common': 7.5.0
-      '@stacks/encryption': 7.4.0
+      '@stacks/encryption': 7.5.0
       '@stacks/network': 7.5.0
-      '@stacks/profile': 7.4.0
+      '@stacks/profile': 7.5.0
       cross-fetch: 3.2.0
       jsontokens: 4.0.1
     transitivePeerDependencies:
       - encoding
 
-  '@stacks/clarinet-sdk-wasm@3.20.0': {}
+  '@stacks/clarinet-sdk-wasm@3.21.0': {}
 
-  '@stacks/clarinet-sdk@3.20.0':
+  '@stacks/clarinet-sdk@3.21.0':
     dependencies:
-      '@stacks/clarinet-sdk-wasm': 3.20.0
+      '@stacks/clarinet-sdk-wasm': 3.21.0
       '@stacks/transactions': 7.4.0
       kolorist: 1.8.0
       prompts: 2.4.2
@@ -950,11 +944,9 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@stacks/common@7.3.1': {}
-
   '@stacks/common@7.5.0': {}
 
-  '@stacks/encryption@7.4.0':
+  '@stacks/encryption@7.5.0':
     dependencies:
       '@noble/hashes': 1.1.5
       '@noble/secp256k1': 1.7.1
@@ -965,13 +957,6 @@ snapshots:
       ripemd160-min: 0.0.6
       varuint-bitcoin: 1.1.2
 
-  '@stacks/network@7.3.1':
-    dependencies:
-      '@stacks/common': 7.5.0
-      cross-fetch: 3.2.0
-    transitivePeerDependencies:
-      - encoding
-
   '@stacks/network@7.5.0':
     dependencies:
       '@stacks/common': 7.5.0
@@ -979,7 +964,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@stacks/profile@7.4.0':
+  '@stacks/profile@7.5.0':
     dependencies:
       '@stacks/common': 7.5.0
       '@stacks/network': 7.5.0
@@ -992,18 +977,18 @@ snapshots:
 
   '@stacks/rendezvous@1.0.1':
     dependencies:
-      '@stacks/clarinet-sdk': 3.20.0
+      '@stacks/clarinet-sdk': 3.21.0
       '@stacks/transactions': 7.4.0
       ansicolor: 2.0.3
       fast-check: 4.8.0
     transitivePeerDependencies:
       - encoding
 
-  '@stacks/storage@7.4.0':
+  '@stacks/storage@7.5.0':
     dependencies:
-      '@stacks/auth': 7.4.0
+      '@stacks/auth': 7.5.0
       '@stacks/common': 7.5.0
-      '@stacks/encryption': 7.4.0
+      '@stacks/encryption': 7.5.0
       '@stacks/network': 7.5.0
       base64-js: 1.5.1
       jsontokens: 4.0.1
@@ -1014,8 +999,8 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.1.5
       '@noble/secp256k1': 1.7.1
-      '@stacks/common': 7.3.1
-      '@stacks/network': 7.3.1
+      '@stacks/common': 7.5.0
+      '@stacks/network': 7.5.0
       c32check: 2.0.0
       lodash.clonedeep: 4.5.0
     transitivePeerDependencies:
@@ -1032,16 +1017,16 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@stacks/wallet-sdk@7.4.0':
+  '@stacks/wallet-sdk@7.5.0':
     dependencies:
       '@scure/bip32': 1.1.3
       '@scure/bip39': 1.1.0
-      '@stacks/auth': 7.4.0
+      '@stacks/auth': 7.5.0
       '@stacks/common': 7.5.0
-      '@stacks/encryption': 7.4.0
+      '@stacks/encryption': 7.5.0
       '@stacks/network': 7.5.0
-      '@stacks/profile': 7.4.0
-      '@stacks/storage': 7.4.0
+      '@stacks/profile': 7.5.0
+      '@stacks/storage': 7.5.0
       '@stacks/transactions': 7.5.0
       c32check: 2.0.0
       jsontokens: 4.0.1
@@ -1065,7 +1050,7 @@ snapshots:
 
   '@types/estree@1.0.9': {}
 
-  '@types/node@26.0.0':
+  '@types/node@26.1.0':
     dependencies:
       undici-types: 8.3.0
 
@@ -1078,13 +1063,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@26.0.0))':
+  '@vitest/mocker@4.1.9(vite@8.0.16(@types/node@26.1.0))':
     dependencies:
       '@vitest/spy': 4.1.9
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.16(@types/node@26.0.0)
+      vite: 8.0.16(@types/node@26.1.0)
 
   '@vitest/pretty-format@4.1.9':
     dependencies:
@@ -1474,7 +1459,7 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  vite@8.0.16(@types/node@26.0.0):
+  vite@8.0.16(@types/node@26.1.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -1482,18 +1467,18 @@ snapshots:
       rolldown: 1.0.3
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 26.0.0
+      '@types/node': 26.1.0
       fsevents: 2.3.3
 
-  vitest-environment-clarinet@3.0.2(@stacks/clarinet-sdk@3.20.0)(vitest@4.1.9(@types/node@26.0.0)(vite@8.0.16(@types/node@26.0.0))):
+  vitest-environment-clarinet@3.0.2(@stacks/clarinet-sdk@3.21.0)(vitest@4.1.9(@types/node@26.1.0)(vite@8.0.16(@types/node@26.1.0))):
     dependencies:
-      '@stacks/clarinet-sdk': 3.20.0
-      vitest: 4.1.9(@types/node@26.0.0)(vite@8.0.16(@types/node@26.0.0))
+      '@stacks/clarinet-sdk': 3.21.0
+      vitest: 4.1.9(@types/node@26.1.0)(vite@8.0.16(@types/node@26.1.0))
 
-  vitest@4.1.9(@types/node@26.0.0)(vite@8.0.16(@types/node@26.0.0)):
+  vitest@4.1.9(@types/node@26.1.0)(vite@8.0.16(@types/node@26.1.0)):
     dependencies:
       '@vitest/expect': 4.1.9
-      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@26.0.0))
+      '@vitest/mocker': 4.1.9(vite@8.0.16(@types/node@26.1.0))
       '@vitest/pretty-format': 4.1.9
       '@vitest/runner': 4.1.9
       '@vitest/snapshot': 4.1.9
@@ -1510,10 +1495,10 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 8.0.16(@types/node@26.0.0)
+      vite: 8.0.16(@types/node@26.1.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 26.0.0
+      '@types/node': 26.1.0
     transitivePeerDependencies:
       - msw
 

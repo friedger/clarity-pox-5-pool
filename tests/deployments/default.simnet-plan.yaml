@@ -72,29 +72,6 @@ plan:
     epoch: '2.0'
   - id: 1
     transactions:
-    # Vendored live contracts, published under the SAME literal principals that
-    # vault.clar / pool.clar / signer-manager.clar / pox-5.clar hardcode, so
-    # those fully-qualified contract-call? references resolve locally.
-    - transaction-type: emulated-contract-publish
-      contract-name: sbtc-registry
-      emulated-sender: SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS
-      path: vendor/sbtc-registry.clar
-      clarity-version: 6
-    - transaction-type: emulated-contract-publish
-      contract-name: sbtc-token
-      emulated-sender: SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS
-      path: vendor/sbtc-token.clar
-      clarity-version: 6
-    - transaction-type: emulated-contract-publish
-      contract-name: sbtc-withdrawal
-      emulated-sender: SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS
-      path: vendor/sbtc-withdrawal.clar
-      clarity-version: 6
-    - transaction-type: emulated-contract-publish
-      contract-name: pox-5
-      emulated-sender: ST000000000000000000002AMW42H
-      path: vendor/pox-5.clar
-      clarity-version: 6
     - transaction-type: emulated-contract-publish
       contract-name: vault-trait
       emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
@@ -114,6 +91,26 @@ plan:
       contract-name: pool
       emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
       path: ../contracts/pool.clar
+      clarity-version: 6
+    - transaction-type: emulated-contract-publish
+      contract-name: pox-5
+      emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+      path: vendor/pox-5.clar
+      clarity-version: 6
+    - transaction-type: emulated-contract-publish
+      contract-name: sbtc-registry
+      emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+      path: vendor/sbtc-registry.clar
+      clarity-version: 6
+    - transaction-type: emulated-contract-publish
+      contract-name: sbtc-token
+      emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+      path: vendor/sbtc-token.clar
+      clarity-version: 6
+    - transaction-type: emulated-contract-publish
+      contract-name: sbtc-withdrawal
+      emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+      path: vendor/sbtc-withdrawal.clar
       clarity-version: 6
     - transaction-type: emulated-contract-publish
       contract-name: signer-manager-1
