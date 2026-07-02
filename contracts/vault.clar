@@ -10,10 +10,10 @@
 ;; All pox-5 / sBTC interactions run inside `as-contract`, so the vault itself is
 ;; the pox-5 staker and the principal the endowment allowlists for the bond.
 
-(use-trait signer-manager-trait 'ST000000000000000000002AMW42H.pox-5.signer-manager-trait)
+(use-trait signer-manager-trait 'SP000000000000000000002Q6VF78.pox-5.signer-manager-trait)
 (impl-trait .vault-trait.vault-trait)
 
-(define-constant SBTC 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token)
+(define-constant SBTC 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token)
 
 ;; captured at deploy time (tx-sender == deployer)
 (define-constant DEPLOYER tx-sender)
@@ -61,7 +61,7 @@
         ;; `stake-update`; a plain transfer allowance aborts the lock (err u128).
         (try! (as-contract? ((with-ft SBTC "sbtc-token" sbtc) (with-staking ustx))
             (begin
-                (try! (contract-call? 'ST000000000000000000002AMW42H.pox-5 register-for-bond bond-index sm
+                (try! (contract-call? 'SP000000000000000000002Q6VF78.pox-5 register-for-bond bond-index sm
                     ustx (err sbtc) signer-calldata
                 ))
                 true
@@ -83,7 +83,7 @@
         ;; requires a `with-pox` allowance (gates unstake/unstake-sbtc/
         ;; update-bond-registration/announce-l1-early-exit) or it aborts.
         (let ((result (try! (as-contract? ((with-pox))
-                (try! (contract-call? 'ST000000000000000000002AMW42H.pox-5 unstake-sbtc sm amount))
+                (try! (contract-call? 'SP000000000000000000002Q6VF78.pox-5 unstake-sbtc sm amount))
             ))))
             (ok (get amount-withdrawn-sats result))
         )

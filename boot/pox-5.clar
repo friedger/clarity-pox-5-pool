@@ -342,12 +342,12 @@
 ;; On non-mainnet networks `make_pox_5_body` rewrites the literal to the
 ;; configured admin before deploy.
 ;; TODO: this should be set to some predefined multisig for mainnet.
-(define-data-var bond-admin principal 'ST1V2ASRWGR81W7GBN1Z4W2JQKXJWCADPVZG30X45)
+(define-data-var bond-admin principal 'SP000000000000000000002Q6VF78)
 
 ;; The role that can permanently pause signer reward claims.
 ;; On non-mainnet networks `make_pox_5_body` rewrites the literal to the
 ;; configured admin before deploy.
-(define-data-var pause-admin principal 'ST000000000000000000002AMW42H)
+(define-data-var pause-admin principal 'SP000000000000000000002Q6VF78)
 (define-data-var rewards-paused bool false)
 
 ;; Data vars that store a copy of the burnchain configuration.
@@ -1317,10 +1317,10 @@
         )
 
         (try! (as-contract?
-            ((with-ft 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            ((with-ft 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 "sbtc-token" amount-to-withdrawal-sats
             ))
-            (try! (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 transfer amount-to-withdrawal-sats tx-sender staker none
             ))
         ))
@@ -1937,7 +1937,7 @@
         (if (> new-sbtc old-sbtc)
             (let ((delta (- new-sbtc old-sbtc)))
                 (try! (contract-call?
-                    'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+                    'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                     transfer delta tx-sender current-contract none
                 ))
                 (var-set total-sbtc-staked (+ (var-get total-sbtc-staked) delta))
@@ -1946,11 +1946,11 @@
                 (let ((delta (- old-sbtc new-sbtc)))
                     (try! (as-contract?
                         ((with-ft
-                            'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+                            'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                             "sbtc-token" delta
                         ))
                         (try! (contract-call?
-                            'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+                            'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                             transfer delta tx-sender staker none
                         ))
                     ))
@@ -2121,7 +2121,7 @@
     (let (
             (cur-reserve (var-get reserve-balance))
             (total-staked-sbtc (get-total-sbtc-staked))
-            (current-balance (unwrap-panic (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            (current-balance (unwrap-panic (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 get-balance current-contract
             )))
         )
@@ -2392,10 +2392,10 @@
 
         (asserts! (> total-rewards u0) ERR_NO_CLAIMABLE_REWARDS)
         (try! (as-contract?
-            ((with-ft 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            ((with-ft 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 "sbtc-token" total-rewards
             ))
-            (try! (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 transfer total-rewards tx-sender signer none
             ))
         ))
@@ -2685,10 +2685,10 @@
         (asserts! (>= cur-reserve amount) ERR_INSUFFICIENT_RESERVE_BALANCE)
         (var-set reserve-balance (- cur-reserve amount))
         (try! (as-contract?
-            ((with-ft 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            ((with-ft 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 "sbtc-token" amount
             ))
-            (try! (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 transfer amount current-contract recipient none
             ))
         ))
@@ -2711,10 +2711,10 @@
     )
     (begin
         (try! (as-contract?
-            ((with-ft 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            ((with-ft 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 "sbtc-token" amount
             ))
-            (try! (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
+            (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
                 transfer amount current-contract recipient none
             ))
         ))

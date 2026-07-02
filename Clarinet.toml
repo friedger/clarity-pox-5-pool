@@ -20,6 +20,9 @@ cache_dir = "./.cache"
 [[project.requirements]]
 contract_id = "SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard"
 
+[project.override_boot_contracts_source]
+pox-5 = "./boot/pox-5.clar"
+
 [contracts.signer-manager-1]
 path = "contracts/signer-manager.clar"
 clarity_version = 6
@@ -57,10 +60,6 @@ epoch = "4.0"
 # warning, if it gets checked inside. This check will also propagate up to the
 # caller.
 # More informations: https://www.hiro.so/blog/new-safety-checks-in-clarinet
-
-[repl.remote_data]
-enabled = true
-api_url = "https://api.private-1.hiro.so"
 
 [repl.analysis]
 passes = ["check_checker"]

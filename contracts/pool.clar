@@ -29,10 +29,10 @@
 ;;     claim functions). Fully trustless on-chain reward collection is deferred.
 
 (impl-trait 'SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard.sip-010-trait)
-(use-trait signer-manager-trait 'ST000000000000000000002AMW42H.pox-5.signer-manager-trait)
+(use-trait signer-manager-trait 'SP000000000000000000002Q6VF78.pox-5.signer-manager-trait)
 (use-trait vault-trait .vault-trait.vault-trait)
 
-(define-constant SBTC 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token)
+(define-constant SBTC 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token)
 (define-constant MAX_BIPS u10000)
 
 (define-constant ERR_NOT_OPERATOR (err u3000))
@@ -152,7 +152,7 @@
         (fee-bips uint)
     )
     (let ((signer (contract-of sm)))
-        (asserts! (is-some (contract-call? 'ST000000000000000000002AMW42H.pox-5 get-signer-info signer))
+        (asserts! (is-some (contract-call? 'SP000000000000000000002Q6VF78.pox-5 get-signer-info signer))
             ERR_SIGNER_NOT_REGISTERED
         )
         (asserts! (<= fee-bips MAX_BIPS) ERR_INVALID_FEE)
@@ -226,8 +226,8 @@
         ;; register-for-bond enforces later, so the operator can't strand future
         ;; depositors in a vault that could never stake. Point-in-time only -- a
         ;; grant can still be revoked before register-cohort, where pox-5 is final.
-        (try! (contract-call? 'ST000000000000000000002AMW42H.pox-5 verify-signer-key-grant signer
-            (unwrap! (contract-call? 'ST000000000000000000002AMW42H.pox-5 get-signer-info signer) ERR_SIGNER_NOT_REGISTERED)))
+        (try! (contract-call? 'SP000000000000000000002Q6VF78.pox-5 verify-signer-key-grant signer
+            (unwrap! (contract-call? 'SP000000000000000000002Q6VF78.pox-5 get-signer-info signer) ERR_SIGNER_NOT_REGISTERED)))
         ;; A vault belongs to exactly one signer (pox-5: one position per
         ;; principal). Reject rebinding it to a different signer.
         (asserts!
@@ -603,9 +603,9 @@
 (define-read-only (rv-vault-reachable-sbtc (vault principal))
     (+
         (unwrap-panic (contract-call?
-            'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token get-balance vault
+            'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token get-balance vault
         ))
-        (match (contract-call? 'ST000000000000000000002AMW42H.pox-5 get-bond-membership vault)
+        (match (contract-call? 'SP000000000000000000002Q6VF78.pox-5 get-bond-membership vault)
             m (get amount-sats m)
             u0
         )
