@@ -13,7 +13,7 @@
 ;; pox-5's `check-caller-allowed` and means the vault is the allowlisted principal
 ;; the endowment whitelists for a bond.
 
-(use-trait signer-manager-trait .pox-5.signer-manager-trait)
+(use-trait signer-manager-trait 'ST000000000000000000002AMW42H.pox-5.signer-manager-trait)
 
 (define-trait vault-trait (
     ;; Register the aggregated cohort (sbtc sats + ustx) into pox-5 under `sm`,

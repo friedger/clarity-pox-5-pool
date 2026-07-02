@@ -10,8 +10,8 @@
 ;; rate is set, the next time that staker claims rewards will have fees taken
 ;; from reward _even before_ the fee was set.
 
-(impl-trait .pox-5.signer-manager-trait)
-(use-trait signer-manager-trait .pox-5.signer-manager-trait)
+(impl-trait 'ST000000000000000000002AMW42H.pox-5.signer-manager-trait)
+(use-trait signer-manager-trait 'ST000000000000000000002AMW42H.pox-5.signer-manager-trait)
 
 ;; A staker tried to claim rewards, but they had none available
 (define-constant ERR_NO_CLAIMABLE_REWARDS (err u1001))
@@ -163,7 +163,7 @@
         (bond-periods (list 6 uint))
         (reward-cycle uint)
     )
-    (let ((result (try! (contract-call? .pox-5 claim-rewards bond-periods reward-cycle))))
+    (let ((result (try! (contract-call? 'ST000000000000000000002AMW42H.pox-5 claim-rewards bond-periods reward-cycle))))
         ;; The sBTC just pulled in is owed to this signer's stakers until each
         ;; claims via `claim-staker-rewards`; reserve it so it is not sweepable.
         (var-set unclaimed-staker-rewards
@@ -192,7 +192,7 @@
         (bond-index (optional uint))
     )
     (let (
-            (earned-before-fees (contract-call? .pox-5 get-earned-staker-rewards current-contract
+            (earned-before-fees (contract-call? 'ST000000000000000000002AMW42H.pox-5 get-earned-staker-rewards current-contract
                 reward-cycle bond-index staker
             ))
             (fees (/
@@ -223,7 +223,7 @@
     )
     (let (
             ;; `unwrap-panic` is ok here: there is no `err` type returnable
-            (rewards-info (unwrap-panic (contract-call? .pox-5 claim-staker-rewards-for-signer staker
+            (rewards-info (unwrap-panic (contract-call? 'ST000000000000000000002AMW42H.pox-5 claim-staker-rewards-for-signer staker
                 reward-cycle bond-index
             )))
             (prev-fees (var-get earned-fees))
@@ -237,7 +237,7 @@
         (asserts!
             (>
                 (unwrap-panic (contract-call?
-                    'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+                    'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                     get-balance current-contract
                 ))
                 u0
@@ -251,7 +251,7 @@
             (- (var-get unclaimed-staker-rewards) gross)
         )
         (try! (as-contract?
-            ((with-ft 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            ((with-ft 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                 "sbtc-token" earned
             ))
             (match (get-pox-addr staker)
@@ -261,7 +261,7 @@
                             ERR_NO_CLAIMABLE_REWARDS
                         )))
                         (withdrawal-request (try! (contract-call?
-                            'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-withdrawal
+                            'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-withdrawal
                             initiate-withdrawal-request amount
                             (get pox-addr l1-info) (get max-fee l1-info)
                         )))
@@ -296,7 +296,7 @@
                         bond-index: bond-index,
                     })
                     (try! (contract-call?
-                        'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+                        'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                         transfer earned tx-sender staker none
                     ))
                 )
@@ -329,7 +329,7 @@
             ))
             (request (unwrap!
                 (contract-call?
-                    'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry
+                    'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-registry
                     get-withdrawal-request request-id
                 )
                 ERR_UNKNOWN_WITHDRAWAL_REQUEST
@@ -351,10 +351,10 @@
             amount-sats: refund,
         })
         (as-contract?
-            ((with-ft 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            ((with-ft 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                 "sbtc-token" refund
             ))
-            (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            (try! (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                 transfer refund tx-sender staker none
             ))
         )
@@ -381,7 +381,7 @@
             ))
             (request (unwrap!
                 (contract-call?
-                    'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry
+                    'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-registry
                     get-withdrawal-request request-id
                 )
                 ERR_UNKNOWN_WITHDRAWAL_REQUEST
@@ -455,10 +455,10 @@
         (asserts! (<= amount fees) ERR_INSUFFICIENT_FEES)
         (var-set earned-fees (- fees amount))
         (try! (as-contract?
-            ((with-ft 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            ((with-ft 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                 "sbtc-token" amount
             ))
-            (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            (try! (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                 transfer amount tx-sender recipient none
             ))
         ))
@@ -490,7 +490,7 @@
 ;; ones to finalize).
 (define-public (sweep-fee-refunds (recipient principal))
     (let (
-            (balance (unwrap-panic (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            (balance (unwrap-panic (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                 get-balance current-contract
             )))
             (reserved (+ (var-get earned-fees)
@@ -510,10 +510,10 @@
             recipient: recipient,
         })
         (try! (as-contract?
-            ((with-ft 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            ((with-ft 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                 "sbtc-token" sweepable
             ))
-            (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            (try! (contract-call? 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token
                 transfer sweepable tx-sender recipient none
             ))
         ))
@@ -531,10 +531,10 @@
     )
     (begin
         (try! (authorize-admin))
-        (try! (contract-call? .pox-5 grant-signer-key signer-key current-contract
+        (try! (contract-call? 'ST000000000000000000002AMW42H.pox-5 grant-signer-key signer-key current-contract
             auth-id signer-sig
         ))
-        (contract-call? .pox-5 register-signer signer-manager signer-key)
+        (contract-call? 'ST000000000000000000002AMW42H.pox-5 register-signer signer-manager signer-key)
     )
 )
 
@@ -549,7 +549,7 @@
 ;; `staker` argument; they must only ever be driven by pox-5, never invoked
 ;; directly by an external principal.
 (define-private (authorize-pox-5)
-    (ok (asserts! (is-eq contract-caller .pox-5) ERR_UNAUTHORIZED_CALLER))
+    (ok (asserts! (is-eq contract-caller 'ST000000000000000000002AMW42H.pox-5) ERR_UNAUTHORIZED_CALLER))
 )
 
 (define-read-only (is-admin (caller principal))

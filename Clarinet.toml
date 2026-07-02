@@ -5,52 +5,50 @@ authors = []
 telemetry = true
 cache_dir = "./.cache"
 
-[[project.requirements]]
-contract_id = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token"
-
-[[project.requirements]]
-contract_id = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry"
-
-[[project.requirements]]
-contract_id = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-withdrawal"
-
+# The pool / vaults / signer-manager target the boot pox-5 and the sBTC suite as
+# they exist on the private testnet node (api.private-1.hiro.so):
+#   pox-5    -> 'ST000000000000000000002AMW42H.pox-5  (canonical boot contract)
+#   sBTC     -> 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-*  (what pox-5 uses)
+# Those cannot be pulled via [[project.requirements]] (those fetch from mainnet
+# only), so they are resolved through remote_data below.
+#
+# The SIP-010 trait that pool.clar implements is NOT on the node, so it IS a
+# requirement (pulled from mainnet). pool.clar references the mainnet principal;
+# in simnet/`clarinet check` the requirement is deployed at that principal, and
+# at deploy time scripts/deploy.mjs republishes it under the deployer and remaps
+# the principal in pool.clar (the same thing `clarinet deployments apply` does).
 [[project.requirements]]
 contract_id = "SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard"
 
-[contracts.pox-5]
-path = "contracts/pox-5.clar"
-clarity_version = 5
-epoch = "3.4"
-
-[contracts.signer-manager]
+[contracts.signer-manager-1]
 path = "contracts/signer-manager.clar"
-clarity_version = 5
-epoch = "3.4"
+clarity_version = 6
+epoch = "4.0"
 
 [contracts.signer-manager-2]
 path = "contracts/signer-manager.clar"
-clarity_version = 5
-epoch = "3.4"
+clarity_version = 6
+epoch = "4.0"
 
 [contracts.vault-trait]
 path = "contracts/vault-trait.clar"
-clarity_version = 5
-epoch = "3.4"
+clarity_version = 6
+epoch = "4.0"
 
 [contracts.vault-1]
 path = "contracts/vault.clar"
-clarity_version = 5
-epoch = "3.4"
+clarity_version = 6
+epoch = "4.0"
 
 [contracts.vault-2]
 path = "contracts/vault.clar"
-clarity_version = 5
-epoch = "3.4"
+clarity_version = 6
+epoch = "4.0"
 
 [contracts.pool]
 path = "contracts/pool.clar"
-clarity_version = 5
-epoch = "3.4"
+clarity_version = 6
+epoch = "4.0"
 
 # Check-checker settings:
 # trusted_sender: if true, inputs are trusted after tx_sender has been checked.
@@ -59,6 +57,10 @@ epoch = "3.4"
 # warning, if it gets checked inside. This check will also propagate up to the
 # caller.
 # More informations: https://www.hiro.so/blog/new-safety-checks-in-clarinet
+
+[repl.remote_data]
+enabled = true
+api_url = "https://api.private-1.hiro.so"
 
 [repl.analysis]
 passes = ["check_checker"]

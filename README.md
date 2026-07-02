@@ -35,7 +35,7 @@ pool            router + global SIP-010 liquid token + signer registry + account
 | contract | role |
 | --- | --- |
 | `pox-5.clar` | vendored pox-5 boot contract (see shim note below) |
-| `signer-manager.clar`, `signer-manager-2.clar` | copies of the reference signer manager — "the signer(s) you run" |
+| `signer-manager.clar` | copy of the reference signer manager — "the signer(s) you run" |
 | `vault-trait.clar` | interface the router uses to drive a vault |
 | `vault-1.clar`, `vault-2.clar` | pre-deployed per-signer custodial vaults |
 | `pool.clar` | the router + liquid token + signer registry (**main deliverable**) |
@@ -135,5 +135,195 @@ auto-applied via the `postinstall` (`patch-package`) hook.
   (`get-bitcoin-tx-output?`, `verify-merkle-proof`) used only by pox-5's L1 lockup path.
   `contracts/pox-5.clar` stubs them (clearly marked) so it compiles for local testing.
   These **must be restored** before using pox-5 for anything touching the L1 path.
+
+## Testnet deployment (private Hiro node, `api.private-1.hiro.so`)
+
+This network runs the **canonical** boot pox-5 at
+`ST000000000000000000002AMW42H.pox-5` (verified: per-staker reward model — the
+`signer-manager-trait` is just `validate-stake!`, and `unstake-sbtc` returns
+`amount-withdrawn-sats`) and the sBTC suite at
+`SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-*`. The pool, vaults, and
+signer-managers reference those addresses **directly** (the deployer-relative
+`.pox-5` is gone), so the local `pox-5.clar` vendoring is no longer used for
+testnet — only the simnet test harness still relies on it.
+
+All six contracts are **Clarity 6 / epoch 4.0**, matching the node
+(`stacks-node 4.0.0.0.0`).
+
+### remote_data + the SIP-010 requirement
+
+The boot pox-5 and the sBTC suite can't be pulled via `[[project.requirements]]`
+(requirements fetch from **mainnet** only, and Clarinet's default testnet sBTC
+remap target `ST1F7QA2...` doesn't exist on this node), so the manifest resolves
+them with
+
+```toml
+[repl.remote_data]
+enabled = true
+api_url = "https://api.private-1.hiro.so"
+```
+
+so `clarinet console`, the test session, and **single-file** `clarinet check
+contracts/<x>.clar` resolve against the **live** boot bytecode.
+
+The **SIP-010 trait** that `pool.clar` implements is a `[[project.requirements]]`
+(`SP3FBR2…sip-010-trait-ft-standard`, fetched from mainnet). `pool.clar`
+references that mainnet principal, so single-file check / simnet resolve it at
+the requirement's principal. The node has no SIP-010 trait, so at deploy time
+`scripts/deploy.mjs` republishes the trait **under the deployer** and remaps the
+mainnet principal to the deployer in `pool.clar` — exactly what `clarinet
+deployments apply` does (we can't use Clarinet here; see the chain-id note).
+
+The deploy therefore publishes the SIP-010 trait (republished under the deployer)
+followed by the 6 local contracts — and never pox-5 or any sBTC contract:
+
+```
+sip-010-trait-ft-standard, signer-manager-1, signer-manager-2,
+vault-trait, vault-1, vault-2, pool
+```
+
+> **`clarinet check` (whole-project) caveat.** The batch project check does
+> **not** apply `[repl.remote_data]` for cross-contract type resolution — it
+> falls back to Clarinet's *bundled* boot pox-5, whose `unstake-sbtc` returns a
+> 3-field tuple (no `amount-withdrawn-sats`) and which knows nothing of the
+> `SN3R84...sbtc-token` principal. So the whole-project check reports false
+> positives (`cannot find field 'amount-withdrawn-sats'`, `unresolved contract
+> SN3R84...sbtc-token`) plus the same benign `get-earned-staker-rewards`
+> read-only warning fastpool-pox-5 sees. To type-check against the **live** node,
+> check each contract individually — all pass:
+> ```sh
+> for c in vault-trait vault signer-manager pool; do
+>   clarinet check contracts/$c.clar
+> done
+> ```
+> `clarinet deployments generate --testnet` and `apply` use the real node and are
+> unaffected.
+
+> **Chain id 256 — do NOT use `clarinet deployments apply`.** This node runs a
+> custom Stacks chain id (256); Clarinet hard-codes the testnet chain id
+> (2147483648) with no override, so its txs are rejected
+> (`SignatureValidation: invalid chain ID`). Deployment goes through
+> `@stacks/transactions` (`scripts/deploy.mjs`), which signs with `chainId: 256`.
+> Bootstrap calls (register-self, assign-vault, deposit, …) must likewise be
+> signed with `chainId: 256`, and `register-self`'s SIP-018 grant signature must
+> use `chain-id: 256` in its domain (see step (a)).
+
+### Daily run (the node resets ~daily — re-run all of this)
+
+Everything is signed with `@stacks/transactions` at **chain id 256** (Clarinet
+can't). Keys come from the `settings/Testnet.toml` mnemonic, by account index:
+
+| acct | role |
+| --- | --- |
+| 0 | operator / each signer-manager admin / vault deployer (`set-pool`) |
+| 1, 2 | the pox **signer** keys for `signer-manager-1`, `signer-manager-2` |
+| 3, 4 | **depositors** routed to `vault-1`, `vault-2` |
+
+**One-time prerequisites** (not part of the daily loop):
+- Put the deployer mnemonic in `settings/Testnet.toml` (gitignored).
+- The pox-5 **bond admin** must `setup-bond` with `<deployer>.vault-1` and
+  `<deployer>.vault-2` in its allowlist — required for `register-cohort` (the
+  deployer is *not* the bond admin; ask the endowment). Re-do if a reset clears it.
+
+**Each day**, after the reset wipes contracts and balances:
+
+```sh
+cd clarity-pox-5-pool
+
+# 1 — deploy: faucet-funds the operator, then publishes the SIP-010 trait
+#     requirement + the 6 contracts (chain 256, dependency order, idempotent)
+./scripts/deploy-testnet.sh
+
+# 2 — register both signers on pox-5, bind both vaults to the pool
+node scripts/bootstrap.mjs register     # register-self for signer-manager-1 & -2
+node scripts/bootstrap.mjs bind         # assign-vault + vault.set-pool (both pairs)
+node scripts/bootstrap.mjs list         # optional: list-signer in the registry
+
+# 3 — fund the depositors (accts 3 & 4): sBTC (0.05/call) + STX (fees + collateral)
+SM=1 node scripts/bootstrap.mjs fund-sbtc      # sBTC -> depositor acct 3 (vault-1)
+SM=2 node scripts/bootstrap.mjs fund-sbtc      # sBTC -> depositor acct 4 (vault-2)
+#     STX for each depositor (address is printed by fund-sbtc):
+curl -X POST "https://api.private-1.hiro.so/extended/v1/faucets/stx?address=<depositor>"
+
+# 4 — per signer/vault (SM=1 or 2): deposit, then register the cohort
+#     (register-cohort needs the allowlisted bond from the prerequisite above)
+SM=1 SBTC_SATS=1000000 USTX=<collateral> node scripts/bootstrap.mjs deposit
+SM=1 BOND_INDEX=<n>                      node scripts/bootstrap.mjs register-cohort
+
+# 5 — claim & distribute rewards (sBTC), once the bond has paid a cycle:
+SM=1 REWARD_CYCLE=<cycle> node scripts/bootstrap.mjs claim-rewards         # signer pulls its sBTC
+SM=1 REWARD_CYCLE=<cycle> node scripts/bootstrap.mjs claim-staker-rewards  # pay the vault its share
+SM=1 AMOUNT_SATS=<sats>   node scripts/bootstrap.mjs fold-rewards          # record sBTC into redemption rate
+
+# 6 — exit: unwind the bond's sBTC, then depositors redeem:
+SM=1 AMOUNT_SATS=<sats> node scripts/bootstrap.mjs unstake-cohort
+SM=1 SHARES=<shares>    node scripts/bootstrap.mjs withdraw               # signed by the depositor (acct 3/4)
+```
+
+`register`/`bind`/`list` cover **both** pairs in one run; everything else acts on
+the pair selected by `SM=1|2`. The faucets are **per-IP rate-limited** — if
+`fund-sbtc` or the STX faucet returns "Too many requests", space the calls out or
+run them from a different IP. The per-call signatures are in (a)–(e) below.
+
+Reference — the calls each bootstrap command makes (`<...>` args are contract
+principals):
+
+   **(a) Register each signer with pox-5** — as the signer-manager admin:
+   ```
+   signer-manager.register-self(
+       signer-manager: <signer-manager-trait>,   ;; the signer-manager itself
+       signer-key:     (buff 33),                 ;; the pox signer's 33-byte compressed pubkey
+       auth-id:        uint,                       ;; unique per grant; bump on re-register
+       signer-sig:     (buff 65))                  ;; SIP-018 grant-authorization signature
+   ```
+   `signer-sig` is a **SIP-018** signature produced by the *signer* key (not the
+   deployer) over
+   `domain  = { name: "pox-5-signer", version: "1.0.0", chain-id }` and
+   `message = { topic: "grant-authorization", signer-manager, auth-id }` — the
+   same scheme as `fastpool-pox-5/scripts/bootstrap.mjs` (`signStructuredData`).
+
+   **(b) Bind each vault to its signer** — operator calls `assign-vault`, and the
+   vault deployer wires the vault back to the pool with `set-pool`:
+   ```
+   pool.assign-vault(signer: principal, vault: <vault-trait>)
+   vault.set-pool(router: principal)              ;; router == the pool contract principal
+   ```
+
+   **(c) Deposit** sBTC (+ STX collateral), routing to the chosen signer's vault:
+   ```
+   pool.deposit(
+       sm:    <signer-manager-trait>,
+       vault: <vault-trait>,
+       sbtc:  uint,                                ;; sats
+       ustx:  uint)                                ;; microSTX collateral
+   ```
+
+   **(d) Register the cohort** into pox-5 once the window is full (before the bond
+   starts; the vault must be allowlisted in the bond's endowment):
+   ```
+   pool.register-cohort(
+       vault:          <vault-trait>,
+       bond-index:     uint,
+       sm:             <signer-manager-trait>,
+       signer-calldata:(optional (buff 500)))      ;; none, or a {pox-addr,max-fee} consensus buff
+   ```
+
+   **(e) Exit** at term — unwind the cohort's sBTC back into the vault, then burn
+   liquid tokens to redeem:
+   ```
+   pool.unstake-cohort(
+       vault:  <vault-trait>,
+       sm:     <signer-manager-trait>,
+       amount: uint)                               ;; sats to unwind
+   pool.withdraw(
+       vault:  <vault-trait>,
+       shares: uint)                               ;; pool-sbtc shares to burn
+   ```
+
+4. Rewards (between deposit and exit): after the node pays sBTC for a cycle,
+   crystallize/claim via `signer-manager.claim-rewards(bond-periods, reward-cycle)`
+   and `signer-manager.claim-staker-rewards(staker, reward-cycle, bond-index)`,
+   then fold the delivered sBTC into the redemption rate with
+   `pool.fold-rewards(vault, amount)`.
 
 [pox5]: https://github.com/stacks-network/stacks-core/blob/pox-wf-integration/stackslib/src/chainstate/stacks/boot/pox-5.clar

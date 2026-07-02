@@ -18,7 +18,7 @@ contract_id = "SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standa
 path = "../../contracts/pox-5.clar"
 clarity_version = 5
 epoch = "3.4"
-[contracts.signer-manager]
+[contracts.signer-manager-1]
 path = "../../contracts/signer-manager.clar"
 clarity_version = 5
 epoch = "3.4"

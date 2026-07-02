@@ -27,7 +27,7 @@ const wallet1 = accounts.get("wallet_1")!;
 const wallet2 = accounts.get("wallet_2")!;
 
 const POX5 = `${deployer}.pox-5`;
-const SIGNER_MGR = `${deployer}.signer-manager`;
+const SIGNER_MGR = `${deployer}.signer-manager-1`;
 const SIGNER_MGR_2 = `${deployer}.signer-manager-2`;
 const POOL = `${deployer}.pool`;
 const VAULT1 = `${deployer}.vault-1`;
@@ -357,6 +357,10 @@ describe("deposit + cohort lifecycle", () => {
       wallet2,
     );
 
+    // The deposits above carry a nonzero ustx collateral, so this also exercises
+    // vault.clar's register-bond as-contract? allowance: it must cover BOTH the
+    // sBTC transfer (with-ft) and pox-5's native STX lock (with-stx) for the
+    // aggregate ustx, or the call aborts with the VM's asset-allowance error.
     const reg = simnet.callPublicFn(
       POOL,
       "register-cohort",

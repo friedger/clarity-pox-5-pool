@@ -23,6 +23,7 @@
     "vitest-environment-clarinet": "^3.0.2"
   },
   "devDependencies": {
-    "@stacks/rendezvous": "^1.0.1"
+    "@stacks/rendezvous": "^1.0.1",
+    "@stacks/wallet-sdk": "^7.4.0"
   }
 }

@@ -10,10 +10,10 @@
 ;; All pox-5 / sBTC interactions run inside `as-contract`, so the vault itself is
 ;; the pox-5 staker and the principal the endowment allowlists for the bond.
 
-(use-trait signer-manager-trait .pox-5.signer-manager-trait)
+(use-trait signer-manager-trait 'ST000000000000000000002AMW42H.pox-5.signer-manager-trait)
 (impl-trait .vault-trait.vault-trait)
 
-(define-constant SBTC 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token)
+(define-constant SBTC 'SN3R84XZYA63QS28932XQF3G1J8R9PC3W76P9CSQS.sbtc-token)
 
 ;; captured at deploy time (tx-sender == deployer)
 (define-constant DEPLOYER tx-sender)
@@ -55,9 +55,13 @@
         ;; leg is the `ok` branch and is out of scope for this sBTC-only pool).
         ;; pox-5 custodies the vault's `sbtc` sats via an sBTC transfer out. The
         ;; inner `try!` keeps the as-contract? body a plain value (not a response).
-        (try! (as-contract? ((with-ft SBTC "sbtc-token" sbtc))
+        ;; pox-5's native STX LOCK for `ustx` is a stacking op, so per SIP-044 it
+        ;; needs a `with-staking` allowance here (NOT `with-stx`, which only covers
+        ;; STX *transfers*) -- `with-staking` gates `stake`/`register-for-bond`/
+        ;; `stake-update`; a plain transfer allowance aborts the lock (err u128).
+        (try! (as-contract? ((with-ft SBTC "sbtc-token" sbtc) (with-staking ustx))
             (begin
-                (try! (contract-call? .pox-5 register-for-bond bond-index sm
+                (try! (contract-call? 'ST000000000000000000002AMW42H.pox-5 register-for-bond bond-index sm
                     ustx (err sbtc) signer-calldata
                 ))
                 true
@@ -74,10 +78,12 @@
     )
     (begin
         (try! (only-pool))
-        ;; pox-5 returns sBTC INTO this vault; the vault sends nothing, so no
-        ;; outgoing asset allowance is required.
-        (let ((result (try! (as-contract? ()
-                (try! (contract-call? .pox-5 unstake-sbtc sm amount))
+        ;; pox-5 returns sBTC INTO this vault, so no outgoing asset allowance is
+        ;; needed -- but `unstake-sbtc` is a PoX interaction, which per SIP-044
+        ;; requires a `with-pox` allowance (gates unstake/unstake-sbtc/
+        ;; update-bond-registration/announce-l1-early-exit) or it aborts.
+        (let ((result (try! (as-contract? ((with-pox))
+                (try! (contract-call? 'ST000000000000000000002AMW42H.pox-5 unstake-sbtc sm amount))
             ))))
             (ok (get amount-withdrawn-sats result))
         )
